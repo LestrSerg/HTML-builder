@@ -1,11 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-function copyDirectory() {
+async function copyDirectory() {
 
 	const source = path.join(__dirname, 'files');
 	const dest = path.join(__dirname, 'files-copy');
 
+
+	await fs.promises.rm(dest, { recursive: true, force: true });
 
 	
 	fs.mkdir(dest, { recursive: true, }, (err) => {
@@ -14,50 +16,32 @@ function copyDirectory() {
        	return;
         }
 
-		fs.readdir(dest, (err, files) => {
-  		if (err) throw err;
-
-	  	for (const file of files) {
-	    		fs.unlink(path.join(dest, file), (err) => {
-    	  		if (err) throw err;
-		    	});
-	  		}
-		});
-
-
-
-
-
 	    fs.readdir(source, { withFileTypes: true }, (err, files) => {
-       	if (err) {
-           	 console.error(`Error reading directory ${source}:`, err);
-           	return;
-        }
+       		if (err) {
+           		console.error(`Error reading directory ${source}:`, err);
+	           	return;
+    	    }
 
-   	    for (let i = 0; i < files.length; i++) {
-    	    const file = files[i];
-			const sourcePath = path.join(source, file.name);
-			const destPath = path.join(dest, file.name);
+   	    	for (let i = 0; i < files.length; i++) {
+    	    	const file = files[i];
+				const sourcePath = path.join(source, file.name);
+				const destPath = path.join(dest, file.name);
 	
 
-   	    	if (file.isDirectory()) {
-       	    	copyDirectory(sourcePath, destPath);
-           	} else if (file.isFile()) {
-       			fs.copyFile(sourcePath, destPath, (err) => {
-   					if (err) {
-			    		console.log("Error found:", err);
-			
-    				} else {
-						console.log(`Copied file: ${sourcePath} to ${destPath}`);						
-					}
-
-           		});
-		    	
-			}
-	
-   		};
+				if (file.isDirectory()) {
+       	    		continue;
+	           	} else if (file.isFile()) {
+    	   			fs.copyFile(sourcePath, destPath, (err) => {
+   						if (err) {
+				    		console.log("Error found:", err);
+    					} else {
+							console.log(`Copied file: ${sourcePath} to ${destPath}`);						
+						}
+    	       		});
+				}
+	   		};
+		});
 	});
-});
 }
 
 
